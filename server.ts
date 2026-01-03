@@ -41,7 +41,7 @@ app.use(
     contentSecurityPolicy: isProduction
       ? {
           defaultSrc: ["'self'"],
-          scriptSrc: ["'self'"],
+          scriptSrc: ["'self'", 'https://cdn.tailwindcss.com'],
           styleSrc: ["'self'", "'unsafe-inline'"],
           imgSrc: ["'self'", 'data:', 'https:'],
         }
