@@ -7,12 +7,15 @@ A modern, high-performance API starter template using [Bun](https://bun.sh), [Ho
 - ⚡️ **Ultra-fast performance** with Bun runtime
 - 🔄 **Hot reloading** for fast development cycles
 - 🧩 **Modular architecture** for scalability
-- 🔒 **Built-in authentication** middleware and JWT support
+- 🔒 **Built-in authentication** middleware and JWT support with expiration
+- 🛡️ **Security-first design** with rate limiting, secure headers, and CSRF protection
 - 🚦 **Request validation** for robust API design
 - 🗃️ **MongoDB integration** with Mongoose
 - 📦 **Compression support** for optimized responses
 - ✅ **TypeScript** for type safety
-- 🔍 **Error handling** middleware
+- 🔍 **Error handling** middleware with proper stack trace management
+- 🚨 **Rate limiting** to prevent brute force attacks
+- 🔐 **Secure headers** (XSS, clickjacking, MIME sniffing protection)
 
 ## Table of Contents
 
@@ -23,6 +26,7 @@ A modern, high-performance API starter template using [Bun](https://bun.sh), [Ho
 - [Usage](#usage)
   - [Development](#development)
   - [Production](#production)
+- [Security](#security)
 - [API Routes](#api-routes)
 - [User Model](#user-model)
 - [Project Structure](#project-structure)
@@ -59,11 +63,24 @@ bun install
 
 Create a `.env` file in the root directory with the following variables:
 
-```
-PORT=8000
+```env
+# Required
+JWT_SECRET=your-super-secret-key-minimum-32-characters-long
 MONGO_URI=mongodb://localhost:27017/bun-hono-api
-JWT_SECRET=your_jwt_secret_key
+
+# Optional
+PORT=8000
+NODE_ENV=development
+
+# Production only (comma-separated list)
+ALLOWED_ORIGINS=https://yourdomain.com,https://app.yourdomain.com
 ```
+
+**Security Note:**
+
+- `JWT_SECRET` must be at least 32 characters long and kept secure
+- Never commit `.env` file to version control
+- In production, set `NODE_ENV=production` and configure `ALLOWED_ORIGINS` for CORS
 
 ## Usage
 
@@ -82,6 +99,68 @@ Start the production server:
 ```bash
 bun start
 ```
+
+## Security
+
+This starter template includes comprehensive security features:
+
+### 🔐 Authentication & Authorization
+
+- **JWT-based authentication** with 7-day token expiration
+- **Protected routes** requiring valid JWT tokens
+- **Admin-only routes** with role-based access control
+- **Password hashing** using Bun's built-in bcrypt implementation
+- **Mass assignment protection** - prevents privilege escalation
+
+### 🛡️ Security Middleware
+
+- **Rate Limiting**:
+
+  - Strict rate limiting (5 requests per 15 minutes) on sensitive endpoints (login, register)
+  - Standard rate limiting (60 requests per minute) on general endpoints
+  - Prevents brute force attacks and API abuse
+
+- **Secure Headers**:
+
+  - X-Frame-Options: DENY (prevents clickjacking)
+  - X-XSS-Protection: 1; mode=block (XSS protection)
+  - X-Content-Type-Options: nosniff (prevents MIME sniffing)
+  - Referrer-Policy: strict-origin-when-cross-origin
+  - Content-Security-Policy (in production)
+
+- **CSRF Protection**: Enabled in production mode
+- **CORS Configuration**: Configurable allowed origins for production
+
+### 🔒 Security Best Practices
+
+- ✅ Input validation on all user inputs
+- ✅ Email format validation
+- ✅ Password length requirements (minimum 6 characters)
+- ✅ Error messages don't leak sensitive information
+- ✅ Stack traces only shown in development
+- ✅ Environment variable validation (throws error if missing)
+- ✅ Password hashes never returned in API responses
+- ✅ Admin role cannot be set during user registration
+
+### 🚨 Rate Limiting Details
+
+The API implements two levels of rate limiting:
+
+1. **Strict Rate Limit** (Login/Register endpoints):
+
+   - 5 requests per 15 minutes per IP
+   - Prevents brute force attacks
+
+2. **Standard Rate Limit** (All other endpoints):
+   - 60 requests per minute per IP
+   - Prevents API abuse
+
+Rate limit headers are included in responses:
+
+- `X-RateLimit-Limit`: Maximum requests allowed
+- `X-RateLimit-Remaining`: Remaining requests in current window
+- `X-RateLimit-Reset`: Unix timestamp when limit resets
+- `Retry-After`: Seconds to wait when limit exceeded (429 status)
 
 ## API Routes
 
@@ -103,6 +182,8 @@ bun start
 POST /api/v1/users
 ```
 
+**Note:** This endpoint has strict rate limiting (5 requests per 15 minutes)
+
 ```json
 {
   "name": "Mehedi Hasan",
@@ -111,11 +192,31 @@ POST /api/v1/users
 }
 ```
 
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "_id": "...",
+    "name": "Mehedi Hasan",
+    "email": "mehedi@example.com",
+    "isAdmin": false,
+    "token": "jwt_token_here"
+  },
+  "message": "User created successfully"
+}
+```
+
+**Note:** The `isAdmin` field cannot be set via API - it's always `false` for security.
+
 **User Login:**
 
 ```
 POST /api/v1/users/login
 ```
+
+**Note:** This endpoint has strict rate limiting (5 requests per 15 minutes) to prevent brute force attacks
 
 ```json
 {
@@ -124,17 +225,51 @@ POST /api/v1/users/login
 }
 ```
 
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "_id": "...",
+    "name": "Mehedi Hasan",
+    "email": "mehedi@example.com",
+    "isAdmin": false,
+    "token": "jwt_token_here"
+  },
+  "message": "User logged in successfully"
+}
+```
+
+**Note:** JWT tokens expire after 7 days. Include the token in the `Authorization` header for protected routes.
+
 **Update Profile:**
 
 ```
 PUT /api/v1/users/profile
+Authorization: Bearer your_jwt_token
 ```
 
 ```json
 {
   "name": "Updated Name",
   "email": "updated@example.com",
-  "password": "newpassword" // Optional
+  "password": "newpassword"
+}
+```
+
+All fields are optional. The response will not include the password hash:
+
+**Response:**
+
+```json
+{
+  "user": {
+    "_id": "...",
+    "name": "Updated Name",
+    "email": "updated@example.com",
+    "isAdmin": false
+  }
 }
 ```
 
@@ -157,15 +292,19 @@ interface IUser extends Document {
   password: string
   isAdmin: boolean
   matchPassword: (pass: string) => Promise<boolean>
+  createdAt: Date
+  updatedAt: Date
 }
 ```
 
 Key features:
 
-- Password hashing with Bun's built-in password utilities
-- Automatic email validation (must match email pattern)
-- Admin role support with the `isAdmin` property
-- Password matching method for authentication
+- **Password hashing** with Bun's built-in bcrypt implementation (cost: 10)
+- **Automatic email validation** (must match email pattern)
+- **Admin role support** with the `isAdmin` property
+- **Password matching method** for secure authentication
+- **Timestamps** automatically managed by Mongoose
+- **Security**: The `isAdmin` field cannot be set via API endpoints - it must be set directly in the database for security reasons
 
 ## Project Structure
 
@@ -177,9 +316,10 @@ Key features:
 ├── controllers/         # Route controllers
 │   ├── user.controllers.ts # User-related controllers
 │   └── index.ts         # Controller exports
-├── middlewares/         # Express middlewares
+├── middlewares/         # Hono middlewares
 │   ├── auth.middlewares.ts # Authentication middleware
 │   ├── error.middlewares.ts # Error handling middleware
+│   ├── rateLimit.middlewares.ts # Rate limiting middleware
 │   └── index.ts         # Middleware exports
 ├── models/              # Database models
 │   ├── user.model.ts    # User model schema
@@ -202,7 +342,35 @@ Key features:
 
 ## Changelog
 
-### Version 2.0.0
+### Version 1.1.0 (Latest)
+
+**Security Improvements:**
+
+- 🔒 Fixed critical mass assignment vulnerability - `isAdmin` can no longer be set during registration
+- 🔐 Added JWT token expiration (7 days) with proper validation
+- 🛡️ Implemented rate limiting middleware to prevent brute force attacks
+- 🔒 Added secure headers middleware (XSS, clickjacking, MIME sniffing protection)
+- 🛡️ Added CSRF protection for production environments
+- 🔐 Fixed JWT secret validation - now throws error if missing
+- 🔒 Fixed password hash leak in profile update response
+- 🛡️ Improved CORS configuration with environment-based origin restrictions
+- 🔍 Fixed error handler stack trace exposure logic
+- ✅ Added comprehensive input validation (email format, password length)
+
+**Code Quality:**
+
+- 📦 Removed deprecated `@types/mongoose` dependency
+- 🔄 Standardized environment variable access to `process.env`
+- ✅ Improved TypeScript types and error handling
+- 🔄 Updated to modern Hono JWT API (`sign`/`verify` instead of deprecated `Jwt`)
+- 📝 Enhanced error messages and validation feedback
+
+**Dependencies:**
+
+- Updated to Hono v4.11.3
+- Mongoose v9.1.1 (includes built-in TypeScript types)
+
+### Version 1.0.2
 
 - Complete project restructuring with improved modularity
 - Added compression support with polyfill for `CompressionStream`
@@ -239,5 +407,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Contact
 
 Mehedi Hasan - [admin@promehedi.com](mailto:admin@promehedi.com)
+
+Project Link: [https://github.com/ProMehedi/bun-hono-api-starter](https://github.com/ProMehedi/bun-hono-api-starter)
 
 Project Link: [https://github.com/ProMehedi/bun-hono-api-starter](https://github.com/ProMehedi/bun-hono-api-starter)
