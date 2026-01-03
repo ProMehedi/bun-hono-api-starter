@@ -21,19 +21,40 @@ export const getUsers = async (c: Context) => {
  * @access Public
  */
 export const createUser = async (c: Context) => {
-  const { name, email, password, isAdmin } = await c.req.json()
+  const { name, email, password } = await c.req.json()
+
+  // Validate required fields
+  if (!name || !email || !password) {
+    throw new HTTPException(400, {
+      message: 'Please provide name, email, and password',
+    })
+  }
+
+  // Validate email format
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailRegex.test(email)) {
+    throw new HTTPException(400, { message: 'Please provide a valid email' })
+  }
+
+  // Validate password length
+  if (password.length < 6) {
+    throw new HTTPException(400, {
+      message: 'Password must be at least 6 characters',
+    })
+  }
 
   // Check for existing user
-  const userExists = await User.findOne({ email })
+  const userExists = await User.findOne({ email: email.toLowerCase().trim() })
   if (userExists) {
     throw new HTTPException(400, { message: 'User already exists' })
   }
 
+  // SECURITY: Never allow isAdmin to be set from request body
   const user: IUser = await User.create({
-    name,
-    email,
+    name: name.trim(),
+    email: email.toLowerCase().trim(),
     password,
-    isAdmin,
+    isAdmin: false, // Always false for public registration
   })
 
   if (!user) {
@@ -70,7 +91,7 @@ export const loginUser = async (c: Context) => {
     })
   }
 
-  const user = await User.findOne({ email })
+  const user = await User.findOne({ email: email.toLowerCase().trim() })
   if (!user) {
     throw new HTTPException(401, { message: 'No user found with this email' })
   }
@@ -130,11 +151,45 @@ export const editProfile = async (c: Context) => {
   const user = c.get('user') as IUser
   const { name, email, password } = await c.req.json()
 
-  if (name) user.name = name
-  if (email) user.email = email
-  if (password) user.password = password
+  // Validate email format if provided
+  if (email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      throw new HTTPException(400, { message: 'Please provide a valid email' })
+    }
+
+    // Check if email is already taken by another user
+    const existingUser = await User.findOne({
+      email: email.toLowerCase().trim(),
+      _id: { $ne: user._id },
+    })
+    if (existingUser) {
+      throw new HTTPException(400, { message: 'Email already in use' })
+    }
+    user.email = email.toLowerCase().trim()
+  }
+
+  // Validate password if provided
+  if (password) {
+    if (password.length < 6) {
+      throw new HTTPException(400, {
+        message: 'Password must be at least 6 characters',
+      })
+    }
+    user.password = password
+  }
+
+  if (name) user.name = name.trim()
 
   await user.save()
 
-  return c.json({ user })
+  // Return user without password
+  return c.json({
+    user: {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      isAdmin: user.isAdmin,
+    },
+  })
 }

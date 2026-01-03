@@ -1,7 +1,13 @@
 import { Context, Next } from 'hono'
-import { HTTPException } from 'hono/http-exception' // Added for better error handling
-import { Jwt } from 'hono/utils/jwt'
+import { HTTPException } from 'hono/http-exception'
+import { verify } from 'hono/jwt'
 import { User, IUser } from '~/models'
+
+const JWT_SECRET = process.env.JWT_SECRET
+
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable is required')
+}
 
 // Protect Route for Authenticated Users
 export const protect = async (c: Context, next: Next) => {
@@ -16,12 +22,18 @@ export const protect = async (c: Context, next: Next) => {
   const token = authHeader.replace(/^Bearer\s+/i, '')
 
   try {
-    const { id } = await Jwt.verify(token, process.env.JWT_SECRET || '') // Updated from Bun.env
-    if (!id) {
+    const payload = await verify(token, JWT_SECRET)
+
+    if (!payload.id) {
       throw new HTTPException(401, { message: 'Invalid token payload!' })
     }
 
-    const user = await User.findById(id).select('-password')
+    // Check token expiration (handled by verify, but double-check)
+    if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
+      throw new HTTPException(401, { message: 'Token has expired!' })
+    }
+
+    const user = await User.findById(payload.id).select('-password')
     if (!user) {
       throw new HTTPException(401, { message: 'User not found!' })
     }
@@ -30,6 +42,9 @@ export const protect = async (c: Context, next: Next) => {
     c.set('user', user as IUser)
     await next()
   } catch (err) {
+    if (err instanceof HTTPException) {
+      throw err
+    }
     throw new HTTPException(401, { message: 'Invalid token! Not authorized!' })
   }
 }
