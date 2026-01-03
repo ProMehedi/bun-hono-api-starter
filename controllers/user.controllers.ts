@@ -91,7 +91,7 @@ export const loginUser = async (c: Context) => {
     })
   }
 
-  const user = await User.findOne({ email })
+  const user = await User.findOne({ email: email.toLowerCase().trim() })
   if (!user) {
     throw new HTTPException(401, { message: 'No user found with this email' })
   }

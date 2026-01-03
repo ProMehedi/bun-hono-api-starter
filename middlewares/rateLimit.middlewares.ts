@@ -23,6 +23,7 @@ interface RateLimitOptions {
   windowMs?: number // Time window in milliseconds
   max?: number // Max requests per window
   message?: string // Error message
+  keyPrefix?: string // Prefix for the rate limit key to isolate different limiters
   keyGenerator?: (c: Context) => string // Custom key generator
 }
 
@@ -35,6 +36,7 @@ export const rateLimit = (options: RateLimitOptions = {}) => {
     windowMs = 60 * 1000, // 1 minute default
     max = 100, // 100 requests per minute default
     message = 'Too many requests, please try again later.',
+    keyPrefix = 'default', // Prefix to isolate different rate limiters
     keyGenerator = (c: Context) => {
       // Use IP address as default key
       return (
@@ -46,7 +48,8 @@ export const rateLimit = (options: RateLimitOptions = {}) => {
   } = options
 
   return async (c: Context, next: Next) => {
-    const key = keyGenerator(c)
+    // Prefix the key to isolate different rate limiters from each other
+    const key = `${keyPrefix}:${keyGenerator(c)}`
     const now = Date.now()
     const entry = rateLimitStore.get(key)
 
@@ -88,6 +91,7 @@ export const strictRateLimit = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 5, // 5 requests per 15 minutes
   message: 'Too many attempts, please try again after 15 minutes.',
+  keyPrefix: 'strict', // Isolate from standard rate limiter
 })
 
 /**
@@ -97,4 +101,5 @@ export const standardRateLimit = rateLimit({
   windowMs: 60 * 1000, // 1 minute
   max: 60, // 60 requests per minute
   message: 'Too many requests, please slow down.',
+  keyPrefix: 'standard', // Isolate from strict rate limiter
 })
