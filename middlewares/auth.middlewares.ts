@@ -15,7 +15,7 @@ export const protect = async (c: Context, next: Next) => {
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     throw new HTTPException(401, {
-      message: 'Not authorized! No token provided!',
+      message: 'Not authorized! No token provided!'
     })
   }
 
@@ -55,7 +55,7 @@ export const isAdmin = async (c: Context, next: Next) => {
 
   if (!user) {
     throw new HTTPException(401, {
-      message: 'Not authorized! No user context!',
+      message: 'Not authorized! No user context!'
     })
   }
 

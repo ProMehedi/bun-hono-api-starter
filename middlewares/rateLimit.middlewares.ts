@@ -44,7 +44,7 @@ export const rateLimit = (options: RateLimitOptions = {}) => {
         c.req.header('x-real-ip') ||
         'unknown'
       )
-    },
+    }
   } = options
 
   return async (c: Context, next: Next) => {
@@ -57,7 +57,7 @@ export const rateLimit = (options: RateLimitOptions = {}) => {
       // Create new entry
       rateLimitStore.set(key, {
         count: 1,
-        resetTime: now + windowMs,
+        resetTime: now + windowMs
       })
     } else {
       // Increment counter
@@ -91,7 +91,7 @@ export const strictRateLimit = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 5, // 5 requests per 15 minutes
   message: 'Too many attempts, please try again after 15 minutes.',
-  keyPrefix: 'strict', // Isolate from standard rate limiter
+  keyPrefix: 'strict' // Isolate from standard rate limiter
 })
 
 /**
@@ -101,5 +101,5 @@ export const standardRateLimit = rateLimit({
   windowMs: 60 * 1000, // 1 minute
   max: 60, // 60 requests per minute
   message: 'Too many requests, please slow down.',
-  keyPrefix: 'standard', // Isolate from strict rate limiter
+  keyPrefix: 'standard' // Isolate from strict rate limiter
 })

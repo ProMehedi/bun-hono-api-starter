@@ -8,7 +8,7 @@ const DB = async () => {
     }
 
     const conn = await mongoose.connect(mongoUri, {
-      autoIndex: process.env.NODE_ENV !== 'production', // Disable auto-indexing in production
+      autoIndex: process.env.NODE_ENV !== 'production' // Disable auto-indexing in production
     })
 
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`)

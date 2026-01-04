@@ -4,3 +4,5 @@ node_modules/
 # environment file
 .env*
 !*.env.example
+
+.DS_Store

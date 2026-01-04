@@ -26,7 +26,7 @@ export const createUser = async (c: Context) => {
   // Validate required fields
   if (!name || !email || !password) {
     throw new HTTPException(400, {
-      message: 'Please provide name, email, and password',
+      message: 'Please provide name, email, and password'
     })
   }
 
@@ -39,7 +39,7 @@ export const createUser = async (c: Context) => {
   // Validate password length
   if (password.length < 6) {
     throw new HTTPException(400, {
-      message: 'Password must be at least 6 characters',
+      message: 'Password must be at least 6 characters'
     })
   }
 
@@ -54,7 +54,7 @@ export const createUser = async (c: Context) => {
     name: name.trim(),
     email: email.toLowerCase().trim(),
     password,
-    isAdmin: false, // Always false for public registration
+    isAdmin: false // Always false for public registration
   })
 
   if (!user) {
@@ -70,9 +70,9 @@ export const createUser = async (c: Context) => {
       name: user.name,
       email: user.email,
       isAdmin: user.isAdmin,
-      token,
+      token
     },
-    message: 'User created successfully',
+    message: 'User created successfully'
   })
 }
 
@@ -87,7 +87,7 @@ export const loginUser = async (c: Context) => {
   // Check for missing email or password
   if (!email || !password) {
     throw new HTTPException(400, {
-      message: 'Please provide an email and password',
+      message: 'Please provide an email and password'
     })
   }
 
@@ -110,9 +110,9 @@ export const loginUser = async (c: Context) => {
       name: user.name,
       email: user.email,
       isAdmin: user.isAdmin,
-      token,
+      token
     },
-    message: 'User logged in successfully',
+    message: 'User logged in successfully'
   })
 }
 
@@ -161,7 +161,7 @@ export const editProfile = async (c: Context) => {
     // Check if email is already taken by another user
     const existingUser = await User.findOne({
       email: email.toLowerCase().trim(),
-      _id: { $ne: user._id },
+      _id: { $ne: user._id }
     })
     if (existingUser) {
       throw new HTTPException(400, { message: 'Email already in use' })
@@ -173,7 +173,7 @@ export const editProfile = async (c: Context) => {
   if (password) {
     if (password.length < 6) {
       throw new HTTPException(400, {
-        message: 'Password must be at least 6 characters',
+        message: 'Password must be at least 6 characters'
       })
     }
     user.password = password
@@ -189,7 +189,7 @@ export const editProfile = async (c: Context) => {
       _id: user._id,
       name: user.name,
       email: user.email,
-      isAdmin: user.isAdmin,
-    },
+      isAdmin: user.isAdmin
+    }
   })
 }

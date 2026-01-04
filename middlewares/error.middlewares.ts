@@ -20,18 +20,18 @@ export const errorHandler: ErrorHandler = (err, c) => {
       success: false,
       message: err?.message || 'Internal Server Error',
       // Only show stack trace in development
-      ...(isProduction ? {} : { stack: err?.stack }),
+      ...(isProduction ? {} : { stack: err?.stack })
     },
     statusCode as ContentfulStatusCode
   )
 }
 
 // Not Found Handler
-export const notFound: NotFoundHandler = (c) => {
+export const notFound: NotFoundHandler = c => {
   return c.json(
     {
       success: false,
-      message: `Not Found - [${c.req.method}]:[${c.req.path}]`,
+      message: `Not Found - [${c.req.method}]:[${c.req.path}]`
     },
     404
   )

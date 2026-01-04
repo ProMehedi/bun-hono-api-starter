@@ -19,7 +19,7 @@ export const ApiDoc = ({ title, version, routes }: ApiDocProps) => {
     GET: 'bg-blue-600',
     POST: 'bg-green-600',
     PUT: 'bg-amber-600',
-    DELETE: 'bg-red-600',
+    DELETE: 'bg-red-600'
   }
 
   return html`<!DOCTYPE html>
@@ -65,38 +65,39 @@ export const ApiDoc = ({ title, version, routes }: ApiDocProps) => {
                   </thead>
                   <tbody>
                     ${routes.map(
-                      (route) => html`<tr class="border-b border-gray-800">
-                        <td class="py-2 px-4">
-                          <span
-                            class="inline-block px-2 py-1 rounded-md text-xs font-medium ${methodColors[
-                              route.method
-                            ] || 'bg-gray-600'}"
-                            >${route.method}</span
-                          >
-                        </td>
-                        <td class="py-2 px-4 font-mono text-gray-300">
-                          <a
-                            href="${route.path}"
-                            class="text-blue-400 hover:underline"
-                            >${route.path}</a
-                          >
-                        </td>
-                        <td class="py-2 px-4">${route.description}</td>
-                        <td class="py-2 px-4">
-                          ${route.auth
-                            ? html`<span class="text-green-400 font-medium"
-                                >Required</span
-                              >`
-                            : html`<span class="text-gray-500">No</span>`}
-                        </td>
-                        <td class="py-2 px-4">
-                          ${route.admin
-                            ? html`<span class="text-amber-400 font-medium"
-                                >Yes</span
-                              >`
-                            : html`<span class="text-gray-500">No</span>`}
-                        </td>
-                      </tr>`
+                      route =>
+                        html`<tr class="border-b border-gray-800">
+                          <td class="py-2 px-4">
+                            <span
+                              class="inline-block px-2 py-1 rounded-md text-xs font-medium ${methodColors[
+                                route.method
+                              ] || 'bg-gray-600'}"
+                              >${route.method}</span
+                            >
+                          </td>
+                          <td class="py-2 px-4 font-mono text-gray-300">
+                            <a
+                              href="${route.path}"
+                              class="text-blue-400 hover:underline"
+                              >${route.path}</a
+                            >
+                          </td>
+                          <td class="py-2 px-4">${route.description}</td>
+                          <td class="py-2 px-4">
+                            ${route.auth
+                              ? html`<span class="text-green-400 font-medium"
+                                  >Required</span
+                                >`
+                              : html`<span class="text-gray-500">No</span>`}
+                          </td>
+                          <td class="py-2 px-4">
+                            ${route.admin
+                              ? html`<span class="text-amber-400 font-medium"
+                                  >Yes</span
+                                >`
+                              : html`<span class="text-gray-500">No</span>`}
+                          </td>
+                        </tr>`
                     )}
                   </tbody>
                 </table>

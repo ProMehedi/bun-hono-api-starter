@@ -11,14 +11,18 @@
   "scripts": {
     "start": "NODE_ENV=production bun run server.ts",
     "dev": "bun run --hot server.ts",
-    "typecheck": "tsc --noEmit"
+    "format": "bunx prettier --write '**/*.{js,jsx,ts,tsx}'",
+    "format:check": "bunx prettier --check '**/*.{js,jsx,ts,tsx}'",
+    "typecheck": "tsc --noEmit",
+    "prepare": "husky"
   },
   "dependencies": {
     "hono": "^4.11.3",
     "mongoose": "^9.1.1"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "husky": "^9.1.7"
   },
   "engines": {
     "bun": ">=1.0.0"

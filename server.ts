@@ -15,7 +15,7 @@ import { ApiDoc } from '~/components/ApiDoc'
 const isProduction = process.env.NODE_ENV === 'production'
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
   'http://localhost:3000',
-  'http://localhost:8000',
+  'http://localhost:8000'
 ]
 
 // Initialize the Hono app with base path
@@ -43,9 +43,9 @@ app.use(
           defaultSrc: ["'self'"],
           scriptSrc: ["'self'", 'https://cdn.tailwindcss.com'],
           styleSrc: ["'self'", "'unsafe-inline'"],
-          imgSrc: ["'self'", 'data:', 'https:'],
+          imgSrc: ["'self'", 'data:', 'https:']
         }
-      : undefined,
+      : undefined
   })
 )
 
@@ -53,7 +53,7 @@ app.use(
 if (isProduction) {
   app.use(
     csrf({
-      origin: allowedOrigins,
+      origin: allowedOrigins
     })
   )
 }
@@ -65,7 +65,7 @@ app.use(standardRateLimit)
 app.use(
   compress({
     encoding: 'gzip',
-    threshold: 1024, // Minimum size to compress (1KB)
+    threshold: 1024 // Minimum size to compress (1KB)
   })
 )
 
@@ -77,69 +77,69 @@ app.use(
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
-    maxAge: 86400, // Cache preflight for 1 day
+    maxAge: 86400 // Cache preflight for 1 day
   })
 )
 
 // Home Route with API Documentation [FOR DEMO PURPOSES]
-app.get('/', (c) => {
+app.get('/', c => {
   const apiRoutes = [
     {
       method: 'GET',
       path: '/api/v1',
       description: 'API Documentation',
       auth: false,
-      admin: false,
+      admin: false
     },
     {
       method: 'POST',
       path: '/api/v1/users',
       description: 'Create a new user',
       auth: false,
-      admin: false,
+      admin: false
     },
     {
       method: 'POST',
       path: '/api/v1/users/login',
       description: 'User login',
       auth: false,
-      admin: false,
+      admin: false
     },
     {
       method: 'GET',
       path: '/api/v1/users/profile',
       description: 'Get user profile',
       auth: true,
-      admin: false,
+      admin: false
     },
     {
       method: 'PUT',
       path: '/api/v1/users/profile',
       description: 'Update user profile',
       auth: true,
-      admin: false,
+      admin: false
     },
     {
       method: 'GET',
       path: '/api/v1/users',
       description: 'Get all users',
       auth: true,
-      admin: true,
+      admin: true
     },
     {
       method: 'GET',
       path: '/api/v1/users/:id',
       description: 'Get user by ID',
       auth: true,
-      admin: true,
-    },
+      admin: true
+    }
   ]
 
   return c.html(
     ApiDoc({
       title: 'Bun + Hono API Starter',
       version: '1.0.2',
-      routes: apiRoutes,
+      routes: apiRoutes
     })
   )
 })
@@ -159,5 +159,5 @@ const port = process.env?.PORT || 8000
 // Export for both Bun and Cloudflare Workers
 export default {
   port,
-  fetch: app.fetch,
+  fetch: app.fetch
 }

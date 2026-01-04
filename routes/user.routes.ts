@@ -6,7 +6,7 @@ import {
   loginUser,
   getUserById,
   getProfile,
-  editProfile,
+  editProfile
 } from '~/controllers'
 import { isAdmin, protect, strictRateLimit } from '~/middlewares'
 

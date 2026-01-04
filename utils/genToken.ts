@@ -11,7 +11,7 @@ const genToken = async (id: string): Promise<string> => {
   const payload = {
     id,
     iat: now, // Issued at
-    exp: now + 60 * 60 * 24 * 7, // Expires in 7 days
+    exp: now + 60 * 60 * 24 * 7 // Expires in 7 days
   }
   return await sign(payload, JWT_SECRET)
 }
