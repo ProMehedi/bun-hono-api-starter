@@ -16,6 +16,8 @@ A modern, high-performance API starter template using [Bun](https://bun.sh), [Ho
 - 🔍 **Error handling** middleware with proper stack trace management
 - 🚨 **Rate limiting** to prevent brute force attacks
 - 🔐 **Secure headers** (XSS, clickjacking, MIME sniffing protection)
+- 🎨 **Prettier** code formatting with automated enforcement
+- 🪝 **Husky git hooks** for pre-commit and pre-push quality checks
 
 ## Table of Contents
 
@@ -99,6 +101,29 @@ Start the production server:
 ```bash
 bun start
 ```
+
+### Code Formatting
+
+This project uses Prettier for code formatting with automatic enforcement via Husky git hooks.
+
+**Format all files (auto-fix):**
+
+```bash
+bun run format
+```
+
+**Check formatting (verify only):**
+
+```bash
+bun run format:check
+```
+
+**Git Hooks:**
+
+- **Pre-commit**: Automatically checks code formatting and TypeScript types before allowing commits
+- **Pre-push**: Ensures all formatting and type checks pass before pushing to remote
+
+If formatting fails, run `bun run format` to auto-fix issues.
 
 ## Security
 
@@ -286,7 +311,7 @@ The user model includes the following properties:
 
 ```typescript
 interface IUser extends Document {
-  _id: Schema.Types.ObjectId
+  _id: Types.ObjectId
   name: string
   email: string
   password: string
@@ -342,7 +367,27 @@ Key features:
 
 ## Changelog
 
-### Version 1.1.0 (Latest)
+### Version 1.2.0 (Latest)
+
+**TypeScript Fixes:**
+
+- ✅ Fixed `IUser` interface type incompatibility - changed `Schema.Types.ObjectId` to `Types.ObjectId` for proper TypeScript type checking
+- ✅ Fixed Mongoose pre-save hook - removed deprecated `next()` callback in favor of modern async/await pattern
+- ✅ Improved type safety with correct Mongoose TypeScript types
+- ✅ All TypeScript compilation errors resolved
+
+**Code Quality & Developer Experience:**
+
+- 🔧 Updated user model to use modern Mongoose async hook pattern
+- 📝 Fixed typo in comment ("Heiger" → "Higher")
+- 🎨 Added Prettier code formatting with comprehensive configuration
+- 🪝 Integrated Husky git hooks for automated code quality checks
+  - **pre-commit hook**: Automatically runs `format:check` and `typecheck` before commits
+  - **pre-push hook**: Ensures code formatting and type checking pass before pushing
+- 📦 Added format scripts: `format` (auto-fix) and `format:check` (verify only)
+- ✅ Automatic code quality enforcement prevents committing unformatted or type-unsafe code
+
+### Version 1.1.0
 
 **Security Improvements:**
 
@@ -407,7 +452,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Contact
 
 Mehedi Hasan - [admin@promehedi.com](mailto:admin@promehedi.com)
-
-Project Link: [https://github.com/ProMehedi/bun-hono-api-starter](https://github.com/ProMehedi/bun-hono-api-starter)
 
 Project Link: [https://github.com/ProMehedi/bun-hono-api-starter](https://github.com/ProMehedi/bun-hono-api-starter)
