@@ -1,11 +1,22 @@
 import winston from 'winston'
 import DailyRotateFile from 'winston-daily-rotate-file'
 import path from 'path'
+import { mkdirSync } from 'fs'
 
 const logsDir = path.join(process.cwd(), 'logs')
 const auditDir = path.join(logsDir, '.audit') // Store audit files in a subdirectory
 const isDev = process.env.NODE_ENV !== 'production'
 const logLevel = process.env.LOG_LEVEL || (isDev ? 'debug' : 'info')
+
+// Create log directories if they don't exist (required for winston-daily-rotate-file)
+// This must be done before initializing any file transports
+try {
+  mkdirSync(logsDir, { recursive: true })
+  mkdirSync(auditDir, { recursive: true })
+} catch (error) {
+  // If directory creation fails, log to console as fallback
+  console.error('Failed to create log directories:', error)
+}
 
 // Control logging destination: 'console' | 'file' | 'both' | 'auto' (default)
 // 'auto' = console in dev, file in production
