@@ -39,11 +39,7 @@ export const rateLimit = (options: RateLimitOptions = {}) => {
     keyPrefix = 'default', // Prefix to isolate different rate limiters
     keyGenerator = (c: Context) => {
       // Use IP address as default key
-      return (
-        c.req.header('x-forwarded-for')?.split(',')[0]?.trim() ||
-        c.req.header('x-real-ip') ||
-        'unknown'
-      )
+      return c.req.header('x-forwarded-for')?.split(',')[0]?.trim() || c.req.header('x-real-ip') || 'unknown'
     }
   } = options
 

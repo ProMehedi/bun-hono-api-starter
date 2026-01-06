@@ -1,6 +1,6 @@
 {
   "name": "bun-hono-api-starter",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "A starter template for building APIs with Bun and Hono",
   "author": "Mehedi <admin@promehedi.com>",
   "license": "MIT",
@@ -18,7 +18,9 @@
   },
   "dependencies": {
     "hono": "^4.11.3",
-    "mongoose": "^9.1.1"
+    "mongoose": "^9.1.1",
+    "winston": "^3.19.0",
+    "winston-daily-rotate-file": "^5.0.0"
   },
   "devDependencies": {
     "@types/bun": "latest",

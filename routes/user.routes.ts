@@ -1,13 +1,6 @@
 import { Hono } from 'hono'
 //
-import {
-  getUsers,
-  createUser,
-  loginUser,
-  getUserById,
-  getProfile,
-  editProfile
-} from '~/controllers'
+import { getUsers, createUser, loginUser, getUserById, getProfile, editProfile } from '~/controllers'
 import { isAdmin, protect, strictRateLimit } from '~/middlewares'
 
 const users = new Hono()

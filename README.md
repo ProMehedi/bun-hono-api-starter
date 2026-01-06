@@ -18,6 +18,7 @@ A modern, high-performance API starter template using [Bun](https://bun.sh), [Ho
 - 🔐 **Secure headers** (XSS, clickjacking, MIME sniffing protection)
 - 🎨 **Prettier** code formatting with automated enforcement
 - 🪝 **Husky git hooks** for pre-commit and pre-push quality checks
+- 📝 **Winston logger** with daily rotation, structured logging, and multiple log levels
 
 ## Table of Contents
 
@@ -28,6 +29,7 @@ A modern, high-performance API starter template using [Bun](https://bun.sh), [Ho
 - [Usage](#usage)
   - [Development](#development)
   - [Production](#production)
+- [Logging](#logging)
 - [Security](#security)
 - [API Routes](#api-routes)
 - [User Model](#user-model)
@@ -73,6 +75,14 @@ MONGO_URI=mongodb://localhost:27017/bun-hono-api
 # Optional
 PORT=8000
 NODE_ENV=development
+
+# Logging (Optional)
+LOG_LEVEL=info                    # Log level: debug, info, warn, error (default: debug in dev, info in production)
+LOG_TO_FILE=both                  # Log destination: console, file, both, auto (default: both)
+                                  # - console: console only
+                                  # - file: file only
+                                  # - both: console + file
+                                  # - auto: console in dev, file in production
 
 # Production only (comma-separated list)
 ALLOWED_ORIGINS=https://yourdomain.com,https://app.yourdomain.com
@@ -124,6 +134,130 @@ bun run format:check
 - **Pre-push**: Ensures all formatting and type checks pass before pushing to remote
 
 If formatting fails, run `bun run format` to auto-fix issues.
+
+## Logging
+
+This starter template includes comprehensive logging capabilities using Winston with daily log rotation.
+
+### 📝 Logger Features
+
+- **Structured JSON logging** for production environments
+- **Human-readable console output** for development
+- **Daily log rotation** with automatic compression
+- **Multiple log levels**: `debug`, `info`, `warn`, `error`
+- **Separate log files** for different log types:
+  - `app-YYYY-MM-DD.log` - General application logs (info, warn, error)
+  - `error-YYYY-MM-DD.log` - Error logs only
+  - `debug-YYYY-MM-DD.log` - Debug logs (when `LOG_LEVEL=debug`)
+  - `exceptions-YYYY-MM-DD.log` - Uncaught exceptions
+  - `rejections-YYYY-MM-DD.log` - Unhandled promise rejections
+- **HTTP request logging** with method, path, status, duration, IP, and user agent
+- **Configurable log destinations** (console, file, or both)
+- **Automatic log retention** and cleanup
+
+### 🔧 Configuration
+
+Configure logging behavior using environment variables:
+
+**LOG_LEVEL** (Optional):
+- `debug` - Most verbose, includes debug logs
+- `info` - Standard logging (default in production)
+- `warn` - Warnings and errors only
+- `error` - Errors only
+- Default: `debug` in development, `info` in production
+
+**LOG_TO_FILE** (Optional):
+- `console` - Log to console only
+- `file` - Log to files only
+- `both` - Log to both console and files (default)
+- `auto` - Console in development, files in production
+- Default: `both`
+
+### 📊 Log File Details
+
+**App Logs** (`app-YYYY-MM-DD.log`):
+- Contains: info, warn, error level logs
+- Max size: 50MB per file
+- Retention: 14 days
+- Compressed: Yes (after rotation)
+
+**Error Logs** (`error-YYYY-MM-DD.log`):
+- Contains: error level logs only
+- Max size: 20MB per file
+- Retention: 30 days
+- Compressed: Yes (after rotation)
+
+**Debug Logs** (`debug-YYYY-MM-DD.log`):
+- Contains: debug level logs (only when `LOG_LEVEL=debug`)
+- Max size: 100MB per file
+- Retention: 3 days (short retention due to verbosity)
+- Compressed: Yes (after rotation)
+
+**Exception/Rejection Logs**:
+- Contains: Uncaught exceptions and unhandled promise rejections
+- Max size: 20MB per file
+- Retention: 30 days
+- Compressed: Yes (after rotation)
+
+### 📍 Log File Location
+
+All log files are stored in the `logs/` directory at the project root:
+```
+logs/
+├── app-2026-01-06.log
+├── error-2026-01-06.log
+├── debug-2026-01-06.log (if LOG_LEVEL=debug)
+├── exceptions-2026-01-06.log
+├── rejections-2026-01-06.log
+└── .audit/              # Audit files for log rotation
+```
+
+### 🔍 HTTP Request Logging
+
+Every HTTP request is automatically logged with the following information:
+- HTTP method (GET, POST, PUT, etc.)
+- Request path
+- Full URL
+- Response status code
+- Request duration (in milliseconds)
+- User agent
+- Client IP address
+
+Example log entry:
+```json
+{
+  "timestamp": "2026-01-06T10:30:45.123Z",
+  "level": "info",
+  "message": "HTTP Request",
+  "method": "POST",
+  "path": "/api/v1/users/login",
+  "url": "http://localhost:8000/api/v1/users/login",
+  "status": 200,
+  "duration": "45ms",
+  "userAgent": "Mozilla/5.0...",
+  "ip": "127.0.0.1"
+}
+```
+
+### 💡 Usage Examples
+
+**Development (console + file logging):**
+```env
+LOG_LEVEL=debug
+LOG_TO_FILE=both
+```
+
+**Production (file logging only):**
+```env
+LOG_LEVEL=info
+LOG_TO_FILE=file
+```
+
+**Debugging (verbose console output):**
+```env
+LOG_LEVEL=debug
+LOG_TO_FILE=console
+```
 
 ## Security
 
@@ -344,6 +478,7 @@ Key features:
 ├── middlewares/         # Hono middlewares
 │   ├── auth.middlewares.ts # Authentication middleware
 │   ├── error.middlewares.ts # Error handling middleware
+│   ├── logger.middlewares.ts # HTTP request logging middleware
 │   ├── rateLimit.middlewares.ts # Rate limiting middleware
 │   └── index.ts         # Middleware exports
 ├── models/              # Database models
@@ -354,6 +489,7 @@ Key features:
 │   └── index.ts         # Route exports
 ├── utils/               # Utility functions
 │   ├── genToken.ts      # JWT token generator
+│   ├── logger.ts        # Winston logger configuration
 │   └── index.ts         # Utils exports
 ├── server.ts            # Main application entry
 ├── .env                 # Environment variables (create this)
@@ -367,7 +503,26 @@ Key features:
 
 ## Changelog
 
-### Version 1.2.0 (Latest)
+### Version 1.2.1 (Latest)
+
+**Logging Feature:**
+
+- 📝 Added comprehensive Winston logger with daily log rotation
+- 🔄 Implemented HTTP request logging middleware with method, path, status, duration, IP, and user agent
+- 📊 Added structured JSON logging for production and human-readable console output for development
+- 🗂️ Created separate log files for app logs, errors, debug logs, exceptions, and rejections
+- ⚙️ Added configurable log destinations (`LOG_TO_FILE`: console, file, both, auto)
+- 📈 Added configurable log levels (`LOG_LEVEL`: debug, info, warn, error)
+- 🗜️ Implemented automatic log compression and retention policies
+- 📁 Log files stored in `logs/` directory with daily rotation
+- 🔍 Added context logger helper for structured logging with custom context
+
+**Dependencies:**
+
+- Added `winston` v3.19.0 for logging
+- Added `winston-daily-rotate-file` v5.0.0 for log rotation
+
+### Version 1.2.0
 
 **TypeScript Fixes:**
 

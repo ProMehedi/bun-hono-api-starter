@@ -5,8 +5,7 @@ const isProduction = process.env.NODE_ENV === 'production'
 
 // Error Handler
 export const errorHandler: ErrorHandler = (err, c) => {
-  const currentStatus =
-    'status' in err ? err.status : c.newResponse(null).status
+  const currentStatus = 'status' in err ? err.status : c.newResponse(null).status
 
   const statusCode = currentStatus !== 200 ? (currentStatus as StatusCode) : 500
 

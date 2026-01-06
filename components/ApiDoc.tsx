@@ -35,23 +35,14 @@ export const ApiDoc = ({ title, version, routes }: ApiDocProps) => {
           <header class="mb-8">
             <h1 class="text-3xl font-bold mb-2">${title}</h1>
             <div class="flex items-center">
-              <span
-                class="bg-purple-600 text-white text-xs px-2 py-1 rounded-md"
-                >v${version}</span
-              >
-              <span class="ml-2 text-gray-300"
-                >Built with Bun + Hono + MongoDB</span
-              >
+              <span class="bg-purple-600 text-white text-xs px-2 py-1 rounded-md">v${version}</span>
+              <span class="ml-2 text-gray-300">Built with Bun + Hono + MongoDB</span>
             </div>
           </header>
 
           <main>
             <section class="mb-8">
-              <h2
-                class="text-xl font-semibold mb-4 border-b border-gray-700 pb-2"
-              >
-                API Endpoints
-              </h2>
+              <h2 class="text-xl font-semibold mb-4 border-b border-gray-700 pb-2">API Endpoints</h2>
               <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                   <thead>
@@ -76,25 +67,17 @@ export const ApiDoc = ({ title, version, routes }: ApiDocProps) => {
                             >
                           </td>
                           <td class="py-2 px-4 font-mono text-gray-300">
-                            <a
-                              href="${route.path}"
-                              class="text-blue-400 hover:underline"
-                              >${route.path}</a
-                            >
+                            <a href="${route.path}" class="text-blue-400 hover:underline">${route.path}</a>
                           </td>
                           <td class="py-2 px-4">${route.description}</td>
                           <td class="py-2 px-4">
                             ${route.auth
-                              ? html`<span class="text-green-400 font-medium"
-                                  >Required</span
-                                >`
+                              ? html`<span class="text-green-400 font-medium">Required</span>`
                               : html`<span class="text-gray-500">No</span>`}
                           </td>
                           <td class="py-2 px-4">
                             ${route.admin
-                              ? html`<span class="text-amber-400 font-medium"
-                                  >Yes</span
-                                >`
+                              ? html`<span class="text-amber-400 font-medium">Yes</span>`
                               : html`<span class="text-gray-500">No</span>`}
                           </td>
                         </tr>`
@@ -105,23 +88,14 @@ export const ApiDoc = ({ title, version, routes }: ApiDocProps) => {
             </section>
 
             <section class="mb-8">
-              <h2
-                class="text-xl font-semibold mb-4 border-b border-gray-700 pb-2"
-              >
-                Request Examples
-              </h2>
+              <h2 class="text-xl font-semibold mb-4 border-b border-gray-700 pb-2">Request Examples</h2>
 
               <div class="mb-6">
                 <h3 class="text-lg font-medium mb-2">Create User</h3>
                 <div class="bg-gray-800 p-4 rounded-md">
                   <div class="mb-2">
-                    <span
-                      class="inline-block px-2 py-1 rounded-md text-xs font-medium bg-green-600"
-                      >POST</span
-                    >
-                    <span class="font-mono text-gray-300 ml-2"
-                      >/api/v1/users</span
-                    >
+                    <span class="inline-block px-2 py-1 rounded-md text-xs font-medium bg-green-600">POST</span>
+                    <span class="font-mono text-gray-300 ml-2">/api/v1/users</span>
                   </div>
                   <pre class="bg-gray-950 p-3 rounded-md overflow-auto"><code>{
   "name": "Mehedi Hasan",
@@ -135,13 +109,8 @@ export const ApiDoc = ({ title, version, routes }: ApiDocProps) => {
                 <h3 class="text-lg font-medium mb-2">Login User</h3>
                 <div class="bg-gray-800 p-4 rounded-md">
                   <div class="mb-2">
-                    <span
-                      class="inline-block px-2 py-1 rounded-md text-xs font-medium bg-green-600"
-                      >POST</span
-                    >
-                    <span class="font-mono text-gray-300 ml-2"
-                      >/api/v1/users/login</span
-                    >
+                    <span class="inline-block px-2 py-1 rounded-md text-xs font-medium bg-green-600">POST</span>
+                    <span class="font-mono text-gray-300 ml-2">/api/v1/users/login</span>
                   </div>
                   <pre class="bg-gray-950 p-3 rounded-md overflow-auto"><code>{
   "email": "mehedi@example.com",
@@ -151,14 +120,10 @@ export const ApiDoc = ({ title, version, routes }: ApiDocProps) => {
               </div>
 
               <div class="mb-6">
-                <h3 class="text-lg font-medium mb-2">
-                  Authorization for Protected Routes
-                </h3>
+                <h3 class="text-lg font-medium mb-2">Authorization for Protected Routes</h3>
                 <div class="bg-gray-800 p-4 rounded-md">
                   <div class="mb-2">
-                    <span class="text-gray-300"
-                      >Include the JWT token in the Authorization header:</span
-                    >
+                    <span class="text-gray-300">Include the JWT token in the Authorization header:</span>
                   </div>
                   <pre
                     class="bg-gray-950 p-3 rounded-md overflow-auto"
@@ -168,11 +133,7 @@ export const ApiDoc = ({ title, version, routes }: ApiDocProps) => {
             </section>
 
             <section>
-              <h2
-                class="text-xl font-semibold mb-4 border-b border-gray-700 pb-2"
-              >
-                Project Information
-              </h2>
+              <h2 class="text-xl font-semibold mb-4 border-b border-gray-700 pb-2">Project Information</h2>
               <ul class="list-disc pl-6 space-y-2">
                 <li>
                   <span class="font-semibold">Author:</span>
@@ -195,9 +156,7 @@ export const ApiDoc = ({ title, version, routes }: ApiDocProps) => {
             </section>
           </main>
 
-          <footer
-            class="mt-12 pt-4 border-t border-gray-800 text-center text-gray-400 text-sm"
-          >
+          <footer class="mt-12 pt-4 border-t border-gray-800 text-center text-gray-400 text-sm">
             &copy; ${new Date().getFullYear()} ${title}. All rights reserved.
           </footer>
         </div>
