@@ -13,7 +13,7 @@
     "dev": "bun run --hot server.ts",
     "format": "bunx prettier --write '**/*.{js,jsx,ts,tsx}'",
     "format:check": "bunx prettier --check '**/*.{js,jsx,ts,tsx}'",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "bun x tsc --noEmit",
     "prepare": "husky"
   },
   "dependencies": {

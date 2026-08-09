@@ -60,9 +60,9 @@ export const ApiDoc = ({ title, version, routes }: ApiDocProps) => {
                         html`<tr class="border-b border-gray-800">
                           <td class="py-2 px-4">
                             <span
-                              class="inline-block px-2 py-1 rounded-md text-xs font-medium ${methodColors[
-                                route.method
-                              ] || 'bg-gray-600'}"
+                              class="inline-block px-2 py-1 rounded-md text-xs font-medium ${
+                                methodColors[route.method] || 'bg-gray-600'
+                              }"
                               >${route.method}</span
                             >
                           </td>
@@ -71,14 +71,18 @@ export const ApiDoc = ({ title, version, routes }: ApiDocProps) => {
                           </td>
                           <td class="py-2 px-4">${route.description}</td>
                           <td class="py-2 px-4">
-                            ${route.auth
-                              ? html`<span class="text-green-400 font-medium">Required</span>`
-                              : html`<span class="text-gray-500">No</span>`}
+                            ${
+                              route.auth
+                                ? html`<span class="text-green-400 font-medium">Required</span>`
+                                : html`<span class="text-gray-500">No</span>`
+                            }
                           </td>
                           <td class="py-2 px-4">
-                            ${route.admin
-                              ? html`<span class="text-amber-400 font-medium">Yes</span>`
-                              : html`<span class="text-gray-500">No</span>`}
+                            ${
+                              route.admin
+                                ? html`<span class="text-amber-400 font-medium">Yes</span>`
+                                : html`<span class="text-gray-500">No</span>`
+                            }
                           </td>
                         </tr>`
                     )}

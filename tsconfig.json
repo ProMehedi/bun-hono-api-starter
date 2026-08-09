@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "ESNext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "types": ["bun-types"],
     "strict": true,
     "esModuleInterop": true,
@@ -10,9 +10,8 @@
     "forceConsistentCasingInFileNames": true,
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx",
-    "baseUrl": "./",
     "paths": {
-      "~/*": ["*"]
+      "~/*": ["./*"]
     },
     "resolveJsonModule": true,
     "noUnusedParameters": false,
