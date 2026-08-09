@@ -12,6 +12,5 @@
   "jsxSingleQuote": false,
   "quoteProps": "as-needed",
   "htmlWhitespaceSensitivity": "css",
-  "embeddedLanguageFormatting": "auto",
-  "parser": "typescript"
+  "embeddedLanguageFormatting": "auto"
 }
