@@ -11,8 +11,12 @@ import { IUser, User } from '~/models'
  */
 export const getUsers = async (c: Context) => {
   const users = await User.find()
+    .select('-password') // Exclude password
+    .sort({ createdAt: -1 }) // Sort by creation date
+    .limit(100) // Limit results
+    .lean() // Convert to plain JS objects (faster)
 
-  return c.json({ users })
+  return c.json({ users, count: users.length })
 }
 
 /**
