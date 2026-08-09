@@ -5,18 +5,18 @@
     "moduleResolution": "bundler",
     "types": ["bun-types"],
     "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx",
     "paths": {
       "~/*": ["./*"]
     },
     "resolveJsonModule": true,
-    "noUnusedParameters": false,
-    "noImplicitAny": false,
-    "allowSyntheticDefaultImports": true
+    "skipLibCheck": true,
+    "noImplicitAny": true,
+    "noUnusedParameters": true,
+    "noUnusedLocals": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true
   },
   "include": ["**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules", "dist"]

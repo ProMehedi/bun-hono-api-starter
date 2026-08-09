@@ -61,6 +61,7 @@ export const ApiDoc = ({ title, version, routes }: ApiDocProps) => {
                           <td class="py-2 px-4">
                             <span
                               class="inline-block px-2 py-1 rounded-md text-xs font-medium ${
+                                // @ts-expect-error
                                 methodColors[route.method] || 'bg-gray-600'
                               }"
                               >${route.method}</span
