@@ -1,14 +1,14 @@
 import * as mongoose from 'mongoose'
+import { MONGO_URI } from './constants'
 
 export const connectDB = async (retries = 5, delay = 5000): Promise<void> => {
-  const mongoUri = process.env.MONGO_URI
-  if (!mongoUri) {
+  if (!MONGO_URI) {
     console.error('❌ Missing MONGO_URI in environment variables')
     process.exit(1) // Keep this exit because a missing URI can never be fixed by retrying
   }
 
   try {
-    const conn = await mongoose.connect(mongoUri, {
+    const conn = await mongoose.connect(MONGO_URI, {
       autoIndex: process.env.NODE_ENV !== 'production',
       maxPoolSize: 10,
       minPoolSize: 2

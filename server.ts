@@ -7,12 +7,11 @@ import { bodyLimit } from 'hono/body-limit'
 import { secureHeaders } from 'hono/secure-headers'
 //
 import { Users } from '~/routes'
-import { connectDB } from '~/config'
+import { connectDB, isProd } from '~/config'
 import { ApiDoc } from '~/components/ApiDoc'
 import { errorHandler, loggerMiddleware, notFound, standardRateLimit } from '~/middlewares'
 
 // Environment configuration
-const isProduction = process.env.NODE_ENV === 'production'
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000', 'http://localhost:8000']
 
 // Initialize the Hono app with base path
@@ -33,7 +32,7 @@ app.use(
     xXssProtection: '1; mode=block',
     xContentTypeOptions: 'nosniff',
     referrerPolicy: 'strict-origin-when-cross-origin',
-    contentSecurityPolicy: isProduction
+    contentSecurityPolicy: isProd
       ? {
           defaultSrc: ["'self'"],
           scriptSrc: ["'self'", 'https://cdn.tailwindcss.com'],
@@ -45,7 +44,7 @@ app.use(
 )
 
 // CSRF Protection for state-changing requests (only in production)
-if (isProduction) {
+if (isProd) {
   app.use(
     csrf({
       origin: allowedOrigins
@@ -76,7 +75,7 @@ app.use(
 app.use(
   '*',
   cors({
-    origin: isProduction ? allowedOrigins : '*', // Restrict in production
+    origin: isProd ? allowedOrigins : '*', // Restrict in production
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowHeaders: ['Content-Type', 'Authorization'],
     credentials: true,

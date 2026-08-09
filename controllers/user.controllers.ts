@@ -1,7 +1,7 @@
 import { Context } from 'hono'
 import { HTTPException } from 'hono/http-exception'
 //
-import { genToken, validatePassword } from '~/utils'
+import { genToken, validateEmail, validatePassword } from '~/utils'
 import { IUser, User } from '~/models'
 
 /**
@@ -35,8 +35,7 @@ export const createUser = async (c: Context) => {
   }
 
   // Validate email format
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  if (!emailRegex.test(email)) {
+  if (!validateEmail(email)) {
     throw new HTTPException(400, { message: 'Please provide a valid email' })
   }
 

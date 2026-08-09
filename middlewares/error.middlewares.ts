@@ -1,9 +1,8 @@
 import type { ErrorHandler, NotFoundHandler } from 'hono'
 import { ContentfulStatusCode } from 'hono/utils/http-status'
 //
+import { isProd } from '~/config'
 import { AppError } from '~/utils'
-
-const isProduction = process.env.NODE_ENV === 'production'
 
 export const errorHandler: ErrorHandler = (err, c) => {
   let statusCode: ContentfulStatusCode = 500
@@ -22,7 +21,7 @@ export const errorHandler: ErrorHandler = (err, c) => {
   }
 
   // Log detailed error in development
-  if (!isProduction) {
+  if (!isProd) {
     console.error('💥 Error caught in middleware:', err)
   }
 
@@ -31,7 +30,7 @@ export const errorHandler: ErrorHandler = (err, c) => {
       success: false,
       message: err?.message || 'Internal Server Error',
       // Include stack trace only when not in production
-      ...(isProduction ? {} : { stack: err?.stack })
+      ...(isProd ? {} : { stack: err?.stack })
     },
     statusCode
   )

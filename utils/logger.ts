@@ -1,9 +1,7 @@
 import pino from 'pino'
 import pretty from 'pino-pretty'
 import { join } from 'path'
-
-const isDev = process.env.NODE_ENV !== 'production'
-const logLevel = process.env.LOG_LEVEL || (isDev ? 'debug' : 'info')
+import { isProd, logLevel } from '~/config'
 
 function getLogFileName(): string {
   const date = new Date()
@@ -13,7 +11,7 @@ function getLogFileName(): string {
   return `app-${day}-${month}-${year}.log` // app-03-Sep-2025.log
 }
 
-const destination = isDev
+const destination = !isProd
   ? pretty({
       colorize: true,
       ignore: 'pid,hostname',
