@@ -1,7 +1,7 @@
 import { Context } from 'hono'
 import { HTTPException } from 'hono/http-exception'
 //
-import { genToken } from '~/utils'
+import { genToken, validatePassword } from '~/utils'
 import { IUser, User } from '~/models'
 
 /**
@@ -36,10 +36,11 @@ export const createUser = async (c: Context) => {
     throw new HTTPException(400, { message: 'Please provide a valid email' })
   }
 
-  // Validate password length
-  if (password.length < 6) {
+  // Validate password strength
+  if (!validatePassword(password)) {
     throw new HTTPException(400, {
-      message: 'Password must be at least 6 characters'
+      message:
+        'Password must be at least 8 characters long and include uppercase, lowercase, number, and special character'
     })
   }
 
