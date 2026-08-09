@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 //
 import { getUsers, createUser, loginUser, getUserById, getProfile, editProfile } from '~/controllers'
-import { isAdmin, protect, strictRateLimit } from '~/middlewares'
+import { isAdmin, protect, strictRateLimit, signupRateLimit } from '~/middlewares'
 
 const users = new Hono()
 
@@ -9,7 +9,7 @@ const users = new Hono()
 users.get('/', protect, isAdmin, getUsers)
 
 // Create User - Apply strict rate limiting to prevent abuse
-users.post('/', strictRateLimit, createUser)
+users.post('/', signupRateLimit, createUser)
 
 // Login User - Apply strict rate limiting to prevent brute force
 users.post('/login', strictRateLimit, loginUser)

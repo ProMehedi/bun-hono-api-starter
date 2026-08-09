@@ -47,11 +47,13 @@ const getClientIp = (c: Context): string => {
 }
 
 interface RateLimitOptions {
-  windowMs?: number // Time window in milliseconds
-  max?: number // Max requests per window
-  message?: string // Error message
-  keyPrefix?: string // Prefix for the rate limit key to isolate different limiters
-  keyGenerator?: (c: Context) => string // Custom key generator
+  windowMs?: number
+  max?: number
+  message?: string
+  keyPrefix?: string
+  keyGenerator?: (c: Context) => string
+  skip?: (c: Context) => boolean // don't rate-limit this request at all
+  shouldCount?: (c: Context) => boolean // after response: does this attempt count toward the limit?
 }
 
 /**
@@ -60,62 +62,56 @@ interface RateLimitOptions {
  */
 export const rateLimit = (options: RateLimitOptions = {}) => {
   const {
-    windowMs = 60 * 1000, // 1 minute default
-    max = 100, // 100 requests per minute default
+    windowMs = 60 * 1000,
+    max = 100,
     message = 'Too many requests, please try again later.',
-    keyPrefix = 'default', // Prefix to isolate different rate limiters
-    keyGenerator = getClientIp
+    keyPrefix = 'default',
+    keyGenerator = getClientIp,
+    skip,
+    shouldCount = () => true // default: count everything, same as before
   } = options
 
   return async (c: Context, next: Next) => {
-    // Prefix the key to isolate different rate limiters from each other
-    const key = `${keyPrefix}:${keyGenerator(c)}`
-    const now = Date.now()
-    const entry = rateLimitStore.get(key)
-
-    if (!entry || entry.resetTime < now) {
-      // Create new entry / window
-      rateLimitStore.set(key, {
-        count: 1,
-        resetTime: now + windowMs
-      })
-    } else {
-      // Increment counter
-      entry.count++
-
-      if (entry.count > max) {
-        const retryAfter = Math.ceil((entry.resetTime - now) / 1000)
-        const rateLimitHeaders = {
-          'Retry-After': String(retryAfter),
-          'X-RateLimit-Limit': String(max),
-          'X-RateLimit-Remaining': '0',
-          'X-RateLimit-Reset': String(Math.ceil(entry.resetTime / 1000))
-        }
-
-        // HTTPException without an explicit `res` builds a fresh Response
-        // internally and drops any headers set via c.header() beforehand.
-        // Attach the response explicitly so rate-limit headers actually
-        // reach the client.
-        throw new HTTPException(429, {
-          message,
-          res: new Response(JSON.stringify({ error: message }), {
-            status: 429,
-            headers: {
-              'Content-Type': 'application/json',
-              ...rateLimitHeaders
-            }
-          })
-        })
-      }
+    if (skip?.(c)) {
+      return next()
     }
 
-    // Add rate limit headers to successful responses
-    const current = rateLimitStore.get(key)!
+    const key = `${keyPrefix}:${keyGenerator(c)}`
+    const now = Date.now()
+    let entry = rateLimitStore.get(key)
+
+    if (!entry || entry.resetTime < now) {
+      entry = { count: 0, resetTime: now + windowMs }
+      rateLimitStore.set(key, entry)
+    }
+
+    if (entry.count >= max) {
+      const retryAfter = Math.ceil((entry.resetTime - now) / 1000)
+      throw new HTTPException(429, {
+        message,
+        res: new Response(JSON.stringify({ error: message }), {
+          status: 429,
+          headers: {
+            'Content-Type': 'application/json',
+            'Retry-After': String(retryAfter),
+            'X-RateLimit-Limit': String(max),
+            'X-RateLimit-Remaining': '0',
+            'X-RateLimit-Reset': String(Math.ceil(entry.resetTime / 1000))
+          }
+        })
+      })
+    }
+
     c.header('X-RateLimit-Limit', String(max))
-    c.header('X-RateLimit-Remaining', String(Math.max(0, max - current.count)))
-    c.header('X-RateLimit-Reset', String(Math.ceil(current.resetTime / 1000)))
+    c.header('X-RateLimit-Remaining', String(Math.max(0, max - entry.count - 1)))
+    c.header('X-RateLimit-Reset', String(Math.ceil(entry.resetTime / 1000)))
 
     await next()
+
+    // Only count this attempt if it should count toward the limit
+    if (shouldCount(c)) {
+      entry.count++
+    }
   }
 }
 
@@ -137,4 +133,15 @@ export const standardRateLimit = rateLimit({
   max: 60, // 60 requests per minute
   message: 'Too many requests, please slow down.',
   keyPrefix: 'standard' // Isolate from strict rate limiter
+})
+
+/**
+ * Rate limiter specifically for signup attempts, ignoring certain error responses
+ */
+export const signupRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: 'Too many signup attempts, please try again after 15 minutes.',
+  keyPrefix: 'signup',
+  shouldCount: c => c.res.status !== 400 && c.res.status !== 422
 })
