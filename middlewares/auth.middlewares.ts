@@ -22,7 +22,7 @@ export const protect = async (c: Context, next: Next) => {
   const token = authHeader.replace(/^Bearer\s+/i, '')
 
   try {
-    const payload = await verify(token, JWT_SECRET)
+    const payload = await verify(token, JWT_SECRET, 'HS256')
 
     if (!payload.id) {
       throw new HTTPException(401, { message: 'Invalid token payload!' })
