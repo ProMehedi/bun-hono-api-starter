@@ -1,9 +1,10 @@
 import '~/config/compress.config'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
-import { compress } from 'hono/compress'
-import { secureHeaders } from 'hono/secure-headers'
 import { csrf } from 'hono/csrf'
+import { compress } from 'hono/compress'
+import { bodyLimit } from 'hono/body-limit'
+import { secureHeaders } from 'hono/secure-headers'
 //
 import { DB } from '~/config'
 import { Users } from '~/routes'
@@ -54,6 +55,14 @@ if (isProduction) {
 
 // Rate limiting - apply globally
 app.use(standardRateLimit)
+
+// Body limit middleware - restricts request body size to 1MB
+app.use(
+  bodyLimit({
+    maxSize: 1 * 1024 * 1024, // 1MB
+    onError: c => c.json({ message: 'Payload too large' }, 413)
+  })
+)
 
 // Compress middleware
 app.use(
