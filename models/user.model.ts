@@ -19,6 +19,15 @@ const userSchema = new Schema<IUser>(
   { timestamps: true }
 )
 
+// Optimizes searches looking for specific names filtered by role
+userSchema.index({ name: 1, isAdmin: 1 })
+
+// enforces strict global uniqueness, but skips rows where the email is completely missing
+userSchema.index(
+  { email: 1 },
+  { unique: true, partialFilterExpression: { email: { $exists: true, $type: 'string' } }, name: 'idx_unique_emails' }
+)
+
 // Match user entered password to hashed password in database
 userSchema.methods.matchPassword = async function (enteredPassword: string) {
   return await Bun.password.verify(enteredPassword, this.password)
