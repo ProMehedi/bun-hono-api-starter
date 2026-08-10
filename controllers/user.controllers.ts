@@ -1,8 +1,10 @@
+import { and, count, desc, eq, ne } from 'drizzle-orm'
 import { Context } from 'hono'
 import { HTTPException } from 'hono/http-exception'
 //
-import { genToken, validateEmail, validatePassword } from '~/utils'
-import { IUser, User } from '~/models'
+import { db } from '~/config'
+import { users } from '~/config/db/schema'
+import { genToken, hashPassword, validateEmail, validatePassword, verifyPassword } from '~/utils'
 
 /**
  * @api {get} /users Get All Users
@@ -10,13 +12,22 @@ import { IUser, User } from '~/models'
  * @access Private
  */
 export const getUsers = async (c: Context) => {
-  const users = await User.find()
-    .select('-password') // Exclude password
-    .sort({ createdAt: -1 }) // Sort by creation date
-    .limit(100) // Limit results
-    .lean() // Convert to plain JS objects (faster)
+  const [usersData, countRes] = await Promise.all([
+    db.query.users.findMany({
+      columns: { password: false },
+      orderBy: [desc(users.createdAt)],
+      limit: 100
+    }),
+    db.select({ total: count() }).from(users)
+  ])
 
-  return c.json({ users, count: users.length })
+  return c.json({
+    success: true,
+    status: 200,
+    data: usersData,
+    count: countRes[0]?.total ?? 0,
+    message: 'Users fetched successfully'
+  })
 }
 
 /**
@@ -48,29 +59,34 @@ export const createUser = async (c: Context) => {
   }
 
   // Check for existing user
-  const userExists = await User.findOne({ email: email.toLowerCase().trim() })
+  const userExists = await db.query.users.findFirst({
+    where: (users, { eq }) => eq(users.email, email.toLowerCase().trim())
+  })
   if (userExists) {
     throw new HTTPException(400, { message: 'User already exists' })
   }
 
-  // SECURITY: Never allow isAdmin to be set from request body
-  const user: IUser = await User.create({
-    name: name.trim(),
-    email: email.toLowerCase().trim(),
-    password,
-    isAdmin: false // Always false for public registration
-  })
+  // Create new user
+  const [user] = await db
+    .insert(users)
+    .values({
+      name: name.trim(),
+      email: email.toLowerCase().trim(),
+      password: await hashPassword(password), // Hash the password before storing
+      isAdmin: false // Always false for public registration
+    })
+    .returning()
 
   if (!user) {
     throw new HTTPException(400, { message: 'Invalid user data' })
   }
 
-  const token = await genToken(user._id.toString())
+  const token = await genToken(user.id.toString())
 
   return c.json({
     success: true,
     data: {
-      _id: user._id,
+      id: user.id,
       name: user.name,
       email: user.email,
       isAdmin: user.isAdmin,
@@ -95,22 +111,24 @@ export const loginUser = async (c: Context) => {
     })
   }
 
-  const user = await User.findOne({ email: email.toLowerCase().trim() })
+  // const user = await User.findOne({ email: email.toLowerCase().trim() })
+  const user = await db.query.users.findFirst({
+    where: (users, { eq }) => eq(users.email, email.toLowerCase().trim())
+  })
   if (!user) {
     throw new HTTPException(401, { message: 'No user found with this email' })
   }
 
-  // Fixed typo: 'mathPassword' -> 'matchPassword'
-  if (!(await user.matchPassword(password))) {
+  if (!(await verifyPassword(password, user.password))) {
     throw new HTTPException(401, { message: 'Invalid credentials' })
   }
 
-  const token = await genToken(user._id.toString())
+  const token = await genToken(user.id.toString())
 
   return c.json({
     success: true,
     data: {
-      _id: user._id,
+      id: user.id,
       name: user.name,
       email: user.email,
       isAdmin: user.isAdmin,
@@ -126,13 +144,23 @@ export const loginUser = async (c: Context) => {
  * @access Private
  */
 export const getUserById = async (c: Context) => {
-  const user = await User.findById(c.req.param('id')).select('-password')
+  const userId = c.req.param('id')
 
-  if (!user) {
-    throw new HTTPException(404, { message: 'User not found' })
-  }
+  if (!userId) throw new HTTPException(400, { message: 'User ID is required' })
 
-  return c.json({ user })
+  const user = await db.query.users.findFirst({
+    columns: { password: false },
+    where: (users, { eq }) => eq(users.id, userId)
+  })
+
+  if (!user) throw new HTTPException(404, { message: 'User not found' })
+
+  return c.json({
+    success: true,
+    status: 200,
+    data: user,
+    message: 'User fetched successfully'
+  })
 }
 
 /**
@@ -141,7 +169,7 @@ export const getUserById = async (c: Context) => {
  * @access Private
  */
 export const getProfile = async (c: Context) => {
-  const user = c.get('user') as IUser
+  const user = c.get('user')
 
   return c.json({ user })
 }
@@ -152,48 +180,69 @@ export const getProfile = async (c: Context) => {
  * @access Private
  */
 export const editProfile = async (c: Context) => {
-  const user = c.get('user') as IUser
+  const user = c.get('user')
   const { name, email, password } = await c.req.json()
 
   // Validate email format if provided
   if (email) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
+    if (!validateEmail(email)) {
       throw new HTTPException(400, { message: 'Please provide a valid email' })
     }
 
     // Check if email is already taken by another user
-    const existingUser = await User.findOne({
-      email: email.toLowerCase().trim(),
-      _id: { $ne: user._id }
+    const existingUser = await db.query.users.findFirst({
+      where: and(eq(users.email, email), ne(users.id, user.id)),
+      columns: { id: true }
     })
-    if (existingUser) {
-      throw new HTTPException(400, { message: 'Email already in use' })
-    }
-    user.email = email.toLowerCase().trim()
+    if (existingUser) throw new HTTPException(400, { message: 'Email already in use' })
   }
 
   // Validate password if provided
   if (password) {
-    if (password.length < 6) {
+    if (!validatePassword(password)) {
       throw new HTTPException(400, {
-        message: 'Password must be at least 6 characters'
+        message:
+          'Password must be at least 8 characters long and include uppercase, lowercase, number, and special character'
       })
     }
-    user.password = password
   }
 
-  if (name) user.name = name.trim()
+  const updateValues = {
+    ...(name ? { name } : {}),
+    ...(email ? { email } : {}),
+    ...(password ? { password: await hashPassword(password) } : {}),
+    updatedAt: new Date()
+  }
 
-  await user.save()
+  if (Object.keys(updateValues).length === 1) {
+    throw new HTTPException(400, { message: 'No valid fields provided for update' })
+  }
+
+  let updated
+  try {
+    ;[updated] = await db.update(users).set(updateValues).where(eq(users.id, user.id)).returning({
+      id: users.id,
+      name: users.name,
+      email: users.email,
+      isAdmin: users.isAdmin
+    })
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    if (/unique/i.test(message)) {
+      throw new HTTPException(409, { message: 'Email already in use' })
+    }
+    throw err
+  }
+
+  if (!updated) {
+    throw new HTTPException(404, { message: 'User not found' })
+  }
 
   // Return user without password
   return c.json({
-    user: {
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      isAdmin: user.isAdmin
-    }
+    success: true,
+    data: updated,
+    status: 200,
+    message: 'Profile updated successfully'
   })
 }
