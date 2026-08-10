@@ -7,7 +7,7 @@ import { bodyLimit } from 'hono/body-limit'
 import { secureHeaders } from 'hono/secure-headers'
 //
 import { Users } from '~/routes'
-import { connectDB, isProd } from '~/config'
+import { initDB, isProd } from '~/config'
 import { ApiDoc } from '~/components/ApiDoc'
 import { errorHandler, loggerMiddleware, notFound, standardRateLimit } from '~/middlewares'
 
@@ -19,7 +19,7 @@ const app = new Hono({ strict: false }).basePath('/api/v1')
 
 // Config MongoDB - Only connect if not in Cloudflare Workers environment
 if (typeof process !== 'undefined') {
-  connectDB()
+  initDB()
 }
 
 // Logger middleware using Winston logger

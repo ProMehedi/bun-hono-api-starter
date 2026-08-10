@@ -11,19 +11,23 @@
   "scripts": {
     "start": "NODE_ENV=production bun run server.ts",
     "dev": "bun run --hot server.ts",
+    "db:generate": "bunx drizzle-kit generate",
+    "db:migrate": "bunx drizzle-kit migrate",
     "format": "bunx prettier --write '**/*.{js,jsx,ts,tsx}'",
     "format:check": "bunx prettier --check '**/*.{js,jsx,ts,tsx}'",
     "typecheck": "bun x tsc --noEmit",
     "prepare": "husky"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.1.0",
+    "drizzle-orm": "^0.45.2",
     "hono": "^4.13.1",
-    "mongoose": "8.4.1",
     "pino": "^10.3.1",
     "pino-pretty": "^13.1.3"
   },
   "devDependencies": {
     "@types/bun": "latest",
+    "drizzle-kit": "^0.31.10",
     "husky": "^9.1.7",
     "prettier": "^3.9.6"
   },
@@ -33,8 +37,9 @@
   "keywords": [
     "bun",
     "hono",
-    "mongodb",
-    "mongoose",
+    "drizzle-orm",
+    "postgresql",
+    "neon",
     "typescript",
     "api",
     "rest",

@@ -1,6 +1,6 @@
 # Bun + Hono API Starter
 
-A modern, fast API starter built with Bun, Hono, MongoDB, and TypeScript.
+A modern, fast API starter built with Bun, Hono, Drizzle, and TypeScript.
 
 Designed for production-ready projects with authentication, security, logging, and clean architecture out of the box.
 
@@ -15,8 +15,8 @@ Designed for production-ready projects with authentication, security, logging, a
 - 🔐 JWT authentication with role-based access
 - 🛡️ Rate limiting, secure headers, CSRF (production)
 - ✅ Request validation + centralized error handling
-- 🗃️ MongoDB (Mongoose)
-- 📝 Winston logging (console + rotating files)
+- 🗃️ PostgreSQL (Drizzle ORM)
+- 📝 Pino logging (console + rotating files)
 - 🎨 Prettier + Husky for code quality
 - 🔄 Hot reload for development
 - 💪 Fully typed with TypeScript
@@ -28,7 +28,7 @@ Designed for production-ready projects with authentication, security, logging, a
 ### Prerequisites
 
 - Bun (v1+)
-- MongoDB (local or Atlas)
+- PostgreSQL (local or Neon)
 
 ---
 
@@ -48,7 +48,7 @@ Create `.env`:
 
 ```env
 JWT_SECRET=your-super-secret-key-minimum-32-characters-long
-MONGO_URI=mongodb://localhost:27017/bun-hono-api
+DATABASE_URL=postgresql://user:password@localhost:5432/bun_hono_api
 
 PORT=8000
 NODE_ENV=development
